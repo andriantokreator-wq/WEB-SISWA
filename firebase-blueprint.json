@@ -1,0 +1,54 @@
+{
+  "schema": {
+    "users": {
+      "__description": "User profiles and roles. Email 'andriantokreator@gmail.com' is superadmin.",
+      "__security": {
+        "read": "request.auth != null",
+        "create": "request.auth != null && request.auth.uid == userId",
+        "update": "request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin')",
+        "delete": "request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin'"
+      },
+      "email": "string",
+      "role": "string",
+      "name": "string",
+      "createdAt": "timestamp"
+    },
+    "articles": {
+      "__description": "News articles published by editors or admins",
+      "__security": {
+        "read": "true",
+        "write": "request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor')"
+      },
+      "title": "string",
+      "content": "string",
+      "category": "string",
+      "subCategory": "string",
+      "imageUrl": "string",
+      "status": "string",
+      "authorId": "string",
+      "authorName": "string",
+      "publishedAt": "timestamp",
+      "createdAt": "timestamp"
+    },
+    "categories": {
+      "__description": "Categories for articles",
+      "__security": {
+        "read": "true",
+        "write": "request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin'"
+      },
+      "name": "string",
+      "slug": "string"
+    },
+    "galleries": {
+      "__description": "Photo gallery",
+      "__security": {
+        "read": "true",
+        "write": "request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor')"
+      },
+      "title": "string",
+      "imageUrl": "string",
+      "createdAt": "timestamp",
+      "uploadedBy": "string"
+    }
+  }
+}
