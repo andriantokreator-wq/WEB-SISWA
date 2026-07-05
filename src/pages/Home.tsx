@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { CATEGORIES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as localeId } from "date-fns/locale";
 
 import { formatImageUrl } from "@/lib/utils";
 
@@ -17,10 +17,12 @@ interface Article {
   imageUrl: string;
   publishedAt: any;
   authorName: string;
+  isHeadline?: boolean;
 }
 
 export default function Home() {
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
+  const [headlineArticle, setHeadlineArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +30,9 @@ export default function Home() {
       try {
         const q = query(
           collection(db, "articles"),
+          where("status", "==", "published"),
           orderBy("publishedAt", "desc"),
-          limit(6)
+          limit(10)
         );
         const querySnapshot = await getDocs(q);
         const articles = querySnapshot.docs.map(doc => ({
@@ -37,9 +40,13 @@ export default function Home() {
           ...doc.data()
         })) as Article[];
         
-        // Filter out drafts if any
-        const published = articles.filter((a: any) => a.status === 'published');
-        setLatestArticles(published);
+        const headline = articles.find(a => a.isHeadline);
+        if (headline) {
+          setHeadlineArticle(headline);
+          setLatestArticles(articles.filter(a => a.id !== headline.id).slice(0, 6));
+        } else {
+          setLatestArticles(articles.slice(0, 6));
+        }
       } catch (error) {
         console.error("Error fetching articles:", error);
       } finally {
@@ -53,28 +60,56 @@ export default function Home() {
   return (
     <div className="space-y-12">
       {/* Hero Banner */}
-      <section className="relative w-full h-[400px] rounded-xl overflow-hidden shadow-sm group">
-        <div className="absolute inset-0 bg-slate-200">
-          <img 
-            src="/src/assets/images/pk_sms_banner_1782806241124.jpg" 
-            alt="Kegiatan Siswa" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end">
-          <div className="p-8 md:p-12">
-            <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded mb-3 uppercase tracking-wide">
-              EKSKLUSIF
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight max-w-4xl mb-4">
-              Eksplorasi Kreativitas & Prestasi Siswa MAN 1 Jember
-            </h2>
-            <p className="text-slate-200 text-lg max-w-2xl leading-relaxed opacity-90">
-              Temukan berbagai informasi terkini mengenai kegiatan ekstrakurikuler, pencapaian akademik, dan aksi nyata siswa di lingkungan sekolah dan masyarakat.
-            </p>
+      {loading ? (
+        <Skeleton className="w-full h-[300px] md:h-[400px] rounded-xl" />
+      ) : headlineArticle ? (
+        <Link to={`/article/${headlineArticle.id}`} className="block">
+          <section className="relative w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden shadow-sm group">
+            <div className="absolute inset-0 bg-slate-200">
+              <img 
+                src={formatImageUrl(headlineArticle.imageUrl) || "/src/assets/images/pk_sms_banner_1782806241124.jpg"} 
+                alt={headlineArticle.title} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end">
+              <div className="p-6 md:p-12">
+                <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded mb-2 md:mb-3 uppercase tracking-wide">
+                  EKSKLUSIF
+                </span>
+                <h2 className="text-2xl md:text-5xl font-black text-white leading-tight max-w-4xl mb-2 md:mb-4 line-clamp-3">
+                  {headlineArticle.title}
+                </h2>
+                <div className="text-slate-300 text-xs md:text-sm font-medium flex items-center gap-2">
+                  <span>{headlineArticle.authorName}</span>
+                  <span>&bull;</span>
+                  <span>{headlineArticle.publishedAt ? format(headlineArticle.publishedAt.toDate(), "dd MMMM yyyy", { locale: localeId }) : ''}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </Link>
+      ) : (
+        <section className="relative w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden shadow-sm group">
+          <div className="absolute inset-0 bg-slate-200">
+            <img 
+              src="/src/assets/images/pk_sms_banner_1782806241124.jpg" 
+              alt="Kegiatan Siswa" 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
           </div>
-        </div>
-      </section>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end">
+            <div className="p-6 md:p-12">
+              <h2 className="text-2xl md:text-5xl font-black text-white leading-tight max-w-4xl mb-4">
+                Eksplorasi Kreativitas & Prestasi Siswa MAN 1 Jember
+              </h2>
+              <p className="text-slate-200 text-sm md:text-lg max-w-2xl leading-relaxed opacity-90 hidden sm:block">
+                Temukan berbagai informasi terkini mengenai kegiatan ekstrakurikuler, pencapaian akademik, dan aksi nyata siswa di lingkungan sekolah dan masyarakat.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Latest Articles */}
       <section>
@@ -118,7 +153,7 @@ export default function Home() {
                     </h4>
                     <div className="mt-auto flex items-center justify-between text-[10px] text-slate-400">
                       <span>{article.authorName}</span>
-                      <span>{article.publishedAt ? format(article.publishedAt.toDate(), "dd MMM yyyy", { locale: id }) : ''}</span>
+                      <span>{article.publishedAt ? format(article.publishedAt.toDate(), "dd MMM yyyy", { locale: localeId }) : ''}</span>
                     </div>
                   </div>
                 </Link>

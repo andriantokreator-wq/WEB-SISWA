@@ -29,7 +29,8 @@ export default function ArticleEditor() {
     subCategory: "",
     content: "",
     imageUrl: "",
-    status: "draft"
+    status: "draft",
+    isHeadline: false
   });
 
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function ArticleEditor() {
               subCategory: data.subCategory || "",
               content: data.content || "",
               imageUrl: data.imageUrl || "",
-              status: data.status || "draft"
+              status: data.status || "draft",
+              isHeadline: data.isHeadline || false
             });
           } else {
             toast.error("Artikel tidak ditemukan");
@@ -184,6 +186,19 @@ export default function ArticleEditor() {
               </Button>
             </div>
           )}
+        </div>
+
+        <div className="flex items-center space-x-2 bg-slate-50 p-4 border border-slate-200 rounded-sm">
+          <input
+            type="checkbox"
+            id="isHeadline"
+            checked={formData.isHeadline}
+            onChange={(e) => setFormData({ ...formData, isHeadline: e.target.checked })}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <Label htmlFor="isHeadline" className="font-bold text-slate-900 cursor-pointer">
+            Jadikan Headline (Tampilkan Besar di Beranda)
+          </Label>
         </div>
 
         <div className="space-y-2 flex-1">

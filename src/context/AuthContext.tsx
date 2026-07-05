@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, User, signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 interface AuthContextType {
   user: User | null;
@@ -23,22 +23,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(currentUser);
       if (currentUser) {
         // Check if user exists in Firestore
-        const userDocRef = doc(db, "users", currentUser.uid);
+        let userDocRef = doc(db, "users", currentUser.uid);
         const userDoc = await getDoc(userDocRef);
         
         let currentRole = "user";
+
         if (userDoc.exists()) {
           currentRole = userDoc.data().role;
-          // Force upgrade to superadmin if email matches owner
+          
           if (currentUser.email === "andriantokreator@gmail.com" && currentRole !== "superadmin") {
             currentRole = "superadmin";
             await setDoc(userDocRef, { role: "superadmin" }, { merge: true });
           }
         } else {
-          // If first login and email matches super admin, grant superadmin role
-          if (currentUser.email === "andriantokreator@gmail.com") {
+          // Check if invited
+          const q = query(collection(db, "invites"), where("email", "==", currentUser.email));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            const inviteDoc = querySnapshot.docs[0];
+            currentRole = inviteDoc.data().role || "superadmin";
+            // Do not delete the invite here as the client might not have permission yet (new user)
+            // Or wait, if we grant them superadmin, they still can't delete it before their user doc is created.
+            // But we don't necessarily need to delete it.
+          } else if (currentUser.email === "andriantokreator@gmail.com") {
             currentRole = "superadmin";
           }
+          
           await setDoc(userDocRef, {
             email: currentUser.email,
             name: currentUser.displayName,
@@ -46,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             createdAt: new Date()
           });
         }
+        
         setRole(currentRole);
       } else {
         setRole(null);
