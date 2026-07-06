@@ -67,7 +67,7 @@ export default function Home() {
           <section className="relative w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden shadow-sm group">
             <div className="absolute inset-0 bg-slate-200">
               <img 
-                src={formatImageUrl(headlineArticle.imageUrl) || "/src/assets/images/pk_sms_banner_1782806241124.jpg"} 
+                src={formatImageUrl(headlineArticle.imageUrl) || "/banner.jpg"} 
                 alt={headlineArticle.title} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -93,7 +93,7 @@ export default function Home() {
         <section className="relative w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden shadow-sm group">
           <div className="absolute inset-0 bg-slate-200">
             <img 
-              src="/src/assets/images/pk_sms_banner_1782806241124.jpg" 
+              src="/banner.jpg" 
               alt="Kegiatan Siswa" 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />

@@ -56,7 +56,7 @@ export default function ArticleList() {
         </Link>
       </div>
       
-      <div className="p-0 overflow-x-auto">
+      <div className="p-0 overflow-x-auto w-full">
         <Table className="min-w-[800px]">
           <TableHeader className="bg-slate-50 border-b-2 border-slate-900">
             <TableRow>

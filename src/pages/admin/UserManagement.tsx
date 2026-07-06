@@ -139,7 +139,7 @@ export default function UserManagement() {
           <p className="text-sm text-slate-500 mt-1">Ubah peran pengguna atau hapus pengguna.</p>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full">
           <Table className="min-w-[700px]">
         <TableHeader className="bg-slate-50 border-b-2 border-slate-900">
           <TableRow>

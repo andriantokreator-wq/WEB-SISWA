@@ -11,20 +11,12 @@ export default function Header() {
 
   return (
     <header className="bg-white border-b sticky top-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-blue-950 text-slate-300 py-1 text-[10px] font-mono tracking-widest uppercase">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <span>LIVE: {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          <span>Pusat Kegiatan Siswa MAN 1 Jember</span>
-        </div>
-      </div>
-
       {/* Main Header */}
       <div className="bg-blue-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-              <img src="/src/assets/images/pk_sms_logo_1782806223368.jpg" alt="PK-SMS Logo" className="w-full h-full object-cover" />
+              <img src="/logo.jpg" alt="PK-SMS Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tighter leading-none group-hover:text-blue-200 transition-colors">PK-SMS</h1>
