@@ -15,8 +15,8 @@ export default function Header() {
       <div className="bg-blue-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-              <img src="/logo.jpg" alt="PK-SMS Logo" className="w-full h-full object-cover" />
+            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow p-1">
+              <img src="/logo.png" alt="PK-SMS Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tighter leading-none group-hover:text-blue-200 transition-colors">PK-SMS</h1>

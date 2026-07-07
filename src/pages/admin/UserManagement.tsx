@@ -17,6 +17,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const isOwner = currentUser?.email === 'andriantokreator@gmail.com';
 
   const fetchUsers = async () => {
@@ -90,7 +91,6 @@ export default function UserManagement() {
   };
 
   const handleDelete = async (userId: string, isInvite?: boolean) => {
-    if (!confirm("Hapus pengguna ini dari database?")) return;
     try {
       if (isInvite) {
         await deleteDoc(doc(db, "invites", userId));
@@ -99,6 +99,7 @@ export default function UserManagement() {
       }
       toast.success("Pengguna dihapus");
       setUsers(users.filter(u => u.id !== userId));
+      setDeleteConfirm(null);
     } catch (error) {
       toast.error("Gagal menghapus pengguna");
     }
@@ -179,15 +180,26 @@ export default function UserManagement() {
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={() => handleDelete(u.id, u.isInvite)}
-                  disabled={u.email === 'andriantokreator@gmail.com' || (!isOwner && u.role === 'superadmin')}
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {deleteConfirm === u.id ? (
+                  <div className="flex justify-end items-center gap-1">
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(u.id, u.isInvite)} className="h-8 text-[10px] font-bold">
+                      Hapus
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(null)} className="h-8 w-8">
+                      X
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => setDeleteConfirm(u.id)}
+                    disabled={u.email === 'andriantokreator@gmail.com' || (!isOwner && u.role === 'superadmin')}
+                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

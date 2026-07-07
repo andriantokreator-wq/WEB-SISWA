@@ -12,6 +12,7 @@ export default function GalleryManagement() {
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   
   const [imageUrl, setImageUrl] = useState("");
   const [caption, setCaption] = useState("");
@@ -64,11 +65,11 @@ export default function GalleryManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Hapus gambar ini dari galeri?")) return;
     try {
       await deleteDoc(doc(db, "galleries", id));
       toast.success("Gambar dihapus");
       setImages(images.filter(img => img.id !== id));
+      setDeleteConfirm(null);
     } catch (error) {
       toast.error("Gagal menghapus gambar");
     }
@@ -151,14 +152,21 @@ export default function GalleryManagement() {
                     </div>
                   )}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="destructive" 
-                      size="icon"
-                      className="h-8 w-8 rounded-sm shadow-sm"
-                      onClick={() => handleDelete(img.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {deleteConfirm === img.id ? (
+                      <div className="flex gap-1 bg-white p-1 rounded-sm shadow-md border border-slate-200">
+                        <Button variant="destructive" size="sm" className="h-7 px-2 text-[10px] font-bold" onClick={() => handleDelete(img.id)}>Hapus</Button>
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="destructive" 
+                        size="icon"
+                        className="h-8 w-8 rounded-sm shadow-sm"
+                        onClick={() => setDeleteConfirm(img.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

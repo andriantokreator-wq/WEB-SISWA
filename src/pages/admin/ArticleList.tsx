@@ -14,6 +14,8 @@ export default function ArticleList() {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
   const fetchArticles = async () => {
     setLoading(true);
     try {
@@ -34,11 +36,11 @@ export default function ArticleList() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus artikel ini?")) return;
     try {
       await deleteDoc(doc(db, "articles", id));
       toast.success("Artikel berhasil dihapus");
       setArticles(articles.filter(a => a.id !== id));
+      setDeleteConfirm(null);
     } catch (error) {
       console.error("Error deleting:", error);
       toast.error("Gagal menghapus artikel");
@@ -104,9 +106,20 @@ export default function ArticleList() {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="outline" size="icon" onClick={() => handleDelete(article.id)} className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {deleteConfirm === article.id ? (
+                        <div className="flex items-center gap-1">
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(article.id)} className="h-8 text-[10px] font-bold">
+                            Hapus
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(null)} className="h-8 w-8">
+                            X
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(article.id)} className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
