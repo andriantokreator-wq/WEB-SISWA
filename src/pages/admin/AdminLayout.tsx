@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { LayoutDashboard, FileText, Users, Image as ImageIcon, LogOut, ExternalLink, Menu, X } from "lucide-react";
 
 export default function AdminLayout() {
-  const { user, role, loading, logout } = useAuth();
+  const { user, dbUser, role, loading, logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -98,11 +98,11 @@ export default function AdminLayout() {
           </div>
           <div className="flex items-center gap-3 lg:gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-900">{user.displayName}</p>
-              <p className="text-[10px] text-slate-500 font-medium">{user.email}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-900">{dbUser?.name || user?.displayName}</p>
+              <p className="text-[10px] text-slate-500 font-medium">{user?.email}</p>
             </div>
             <div className="w-8 h-8 lg:w-10 lg:h-10 rounded bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm lg:text-lg border border-blue-200">
-              {user.displayName?.charAt(0) || 'A'}
+              {(dbUser?.name || user?.displayName)?.charAt(0) || 'A'}
             </div>
           </div>
         </header>

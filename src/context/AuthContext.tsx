@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase
 
 interface AuthContextType {
   user: User | null;
+  dbUser: any | null;
   role: string | null;
   loading: boolean;
   login: () => Promise<void>;
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [dbUser, setDbUser] = useState<any | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,13 +29,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userDoc = await getDoc(userDocRef);
         
         let currentRole = "user";
-
+        let dbUserData = null;
+        
         if (userDoc.exists()) {
           currentRole = userDoc.data().role;
+          dbUserData = userDoc.data();
           
           if (currentUser.email === "andriantokreator@gmail.com" && currentRole !== "superadmin") {
             currentRole = "superadmin";
             await setDoc(userDocRef, { role: "superadmin" }, { merge: true });
+            dbUserData.role = "superadmin";
           }
         } else {
           // Check if invited
@@ -43,24 +48,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (!querySnapshot.empty) {
             const inviteDoc = querySnapshot.docs[0];
             currentRole = inviteDoc.data().role || "superadmin";
-            // Do not delete the invite here as the client might not have permission yet (new user)
-            // Or wait, if we grant them superadmin, they still can't delete it before their user doc is created.
-            // But we don't necessarily need to delete it.
           } else if (currentUser.email === "andriantokreator@gmail.com") {
             currentRole = "superadmin";
           }
           
-          await setDoc(userDocRef, {
+          const newUserData = {
             email: currentUser.email,
             name: currentUser.displayName,
             role: currentRole,
             createdAt: new Date()
-          });
+          };
+          
+          await setDoc(userDocRef, newUserData);
+          dbUserData = newUserData;
         }
         
         setRole(currentRole);
+        setDbUser(dbUserData);
       } else {
         setRole(null);
+        setDbUser(null);
       }
       setLoading(false);
     });
@@ -78,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, dbUser, role, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

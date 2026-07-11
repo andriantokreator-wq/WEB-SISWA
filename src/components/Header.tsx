@@ -6,7 +6,7 @@ import { useState } from "react";
 import { CATEGORIES } from "@/lib/constants";
 
 export default function Header() {
-  const { user, role, login, logout } = useAuth();
+  const { user, dbUser, role, login, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -15,24 +15,24 @@ export default function Header() {
       <div className="bg-blue-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-blue-900 font-black text-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow p-1">
-              <img src="/logo.png" alt="PK-SMS Logo" className="w-full h-full object-contain" />
+            <div className="w-12 h-12 bg-white rounded-lg flex flex-col items-center justify-center text-blue-900 font-black overflow-hidden shadow-sm group-hover:shadow-md transition-shadow border-2 border-slate-100">
+              <span className="text-xl tracking-tighter leading-none">PK</span>
+              <span className="text-[10px] tracking-widest leading-none mt-0.5">SMS</span>
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tighter leading-none group-hover:text-blue-200 transition-colors">PK-SMS</h1>
               <p className="text-[10px] uppercase tracking-widest opacity-80 font-semibold mt-1 text-blue-200">Pusat Kegiatan Siswa MAN 1 Jember</p>
             </div>
           </Link>
-
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="flex items-center space-x-4 border-l border-blue-700 pl-6">
                 <div className="text-right hidden lg:block">
-                  <p className="text-xs font-bold leading-none">{user.displayName}</p>
+                  <p className="text-xs font-bold leading-none">{dbUser?.name || user.displayName}</p>
                   <p className="text-[10px] text-blue-200 mt-1">{user.email}</p>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center font-bold text-sm">
-                  {user.displayName?.charAt(0) || 'A'}
+                  {(dbUser?.name || user.displayName)?.charAt(0) || 'A'}
                 </div>
                 {(role === 'superadmin' || role === 'editor') && (
                   <Link to="/admin">
@@ -94,7 +94,7 @@ export default function Header() {
             <div className="border-t border-slate-200 pt-4 pb-2 mt-4">
               {user ? (
                 <div className="space-y-2">
-                  <div className="px-3 py-2 text-xs font-bold text-slate-600">Masuk sebagai: <span className="text-blue-600">{user.displayName}</span></div>
+                  <div className="px-3 py-2 text-xs font-bold text-slate-600">Masuk sebagai: <span className="text-blue-600">{dbUser?.name || user.displayName}</span></div>
                   {(role === 'superadmin' || role === 'editor') && (
                     <Link to="/admin" className="block px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wide text-blue-700 bg-blue-50" onClick={() => setIsMobileMenuOpen(false)}>
                       Dashboard Admin

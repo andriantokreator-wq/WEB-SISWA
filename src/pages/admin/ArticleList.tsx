@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs, orderBy, query, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2, CheckCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ArticleList() {
+  const { role } = useAuth();
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,30 @@ export default function ArticleList() {
     fetchArticles();
   }, []);
 
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    if (role !== 'superadmin') {
+      toast.error("Hanya superadmin yang dapat mengubah status artikel");
+      return;
+    }
+    try {
+      const updateData: any = { status: newStatus };
+      if (newStatus === 'published') {
+        updateData.publishedAt = serverTimestamp();
+      }
+      await updateDoc(doc(db, "articles", id), updateData);
+      toast.success(`Artikel berhasil ${newStatus === 'published' ? 'diterbitkan' : 'disimpan sebagai draft'}`);
+      setArticles(articles.map(a => a.id === id ? { ...a, status: newStatus } : a));
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Gagal mengubah status artikel");
+    }
+  };
+
   const handleDelete = async (id: string) => {
+    if (role !== 'superadmin') {
+      toast.error("Hanya superadmin yang dapat menghapus artikel");
+      return;
+    }
     try {
       await deleteDoc(doc(db, "articles", id));
       toast.success("Artikel berhasil dihapus");
@@ -100,25 +125,49 @@ export default function ArticleList() {
                     {article.createdAt ? format(article.createdAt.toDate(), "dd MMM yyyy", { locale: idLocale }) : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end items-center gap-2">
+                      {role === 'superadmin' && article.status !== 'published' && (
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleStatusChange(article.id, 'published')} 
+                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Terbitkan"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {role === 'superadmin' && article.status === 'published' && (
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleStatusChange(article.id, 'draft')} 
+                          className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                          title="Jadikan Draft"
+                        >
+                          <Lock className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Link to={`/admin/articles/edit/${article.id}`}>
-                        <Button variant="outline" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                        <Button variant="outline" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" title="Edit">
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      {deleteConfirm === article.id ? (
-                        <div className="flex items-center gap-1">
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(article.id)} className="h-8 text-[10px] font-bold">
-                            Hapus
+                      {role === 'superadmin' && (
+                        deleteConfirm === article.id ? (
+                          <div className="flex items-center gap-1">
+                            <Button variant="destructive" size="sm" onClick={() => handleDelete(article.id)} className="h-8 text-[10px] font-bold">
+                              Hapus
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(null)} className="h-8 w-8">
+                              X
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(article.id)} className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4" />
                           </Button>
-                          <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(null)} className="h-8 w-8">
-                            X
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button variant="outline" size="icon" onClick={() => setDeleteConfirm(article.id)} className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        )
                       )}
                     </div>
                   </TableCell>

@@ -16,7 +16,7 @@ import { Save, Send } from "lucide-react";
 export default function ArticleEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, dbUser, role } = useAuth();
   const isEdit = !!id;
 
   const [loading, setLoading] = useState(isEdit);
@@ -90,7 +90,7 @@ export default function ArticleEditor() {
       } else {
         (articleData as any).createdAt = serverTimestamp();
         (articleData as any).authorId = user?.uid;
-        (articleData as any).authorName = user?.displayName;
+        (articleData as any).authorName = dbUser?.name || user?.displayName;
         if (status === 'published') {
            (articleData as any).publishedAt = serverTimestamp();
         }
@@ -224,13 +224,15 @@ export default function ArticleEditor() {
           >
             <Save className="w-4 h-4" /> Simpan Draft
           </Button>
-          <Button 
-            onClick={() => handleSave("published")} 
-            disabled={saving}
-            className="gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold uppercase tracking-wider text-xs rounded-sm"
-          >
-            <Send className="w-4 h-4" /> {isEdit && formData.status === 'published' ? 'Perbarui Artikel' : 'Publikasikan Sekarang'}
-          </Button>
+          {role === 'superadmin' && (
+            <Button 
+              onClick={() => handleSave("published")} 
+              disabled={saving}
+              className="gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold uppercase tracking-wider text-xs rounded-sm"
+            >
+              <Send className="w-4 h-4" /> {isEdit && formData.status === 'published' ? 'Perbarui Artikel' : 'Publikasikan Sekarang'}
+            </Button>
+          )}
         </div>
       </div>
     </div>

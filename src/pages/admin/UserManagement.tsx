@@ -18,6 +18,8 @@ export default function UserManagement() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editNameValue, setEditNameValue] = useState("");
   const isOwner = currentUser?.email === 'andriantokreator@gmail.com';
 
   const fetchUsers = async () => {
@@ -90,6 +92,32 @@ export default function UserManagement() {
     }
   };
 
+  const saveNameChange = async (userId: string, isInvite?: boolean) => {
+    if (!isOwner) {
+      toast.error("Hanya superadmin utama yang dapat mengubah nama");
+      return;
+    }
+    if (isInvite) {
+      toast.error("Tidak bisa mengubah nama untuk undangan");
+      return;
+    }
+    const newName = editNameValue.trim();
+    if (!newName) {
+      toast.error("Nama tidak boleh kosong");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "users", userId), { name: newName });
+      toast.success("Nama pengguna berhasil diperbarui");
+      setUsers(users.map(u => u.id === userId ? { ...u, name: newName } : u));
+      setEditingNameId(null);
+    } catch (error) {
+      console.error("Error updating name:", error);
+      toast.error("Gagal memperbarui nama");
+    }
+  };
+
   const handleDelete = async (userId: string, isInvite?: boolean) => {
     try {
       if (isInvite) {
@@ -157,7 +185,30 @@ export default function UserManagement() {
           ) : users.map(u => (
             <TableRow key={u.id} className={u.isInvite ? "bg-slate-50 border-l-2 border-l-blue-400" : ""}>
               <TableCell className="font-bold text-slate-900">
-                {u.name || (u.isInvite ? <span className="text-slate-400 font-normal italic text-xs">Belum login (Undangan)</span> : "-")}
+                {editingNameId === u.id ? (
+                  <div className="flex items-center gap-1">
+                    <Input 
+                      value={editNameValue} 
+                      onChange={(e) => setEditNameValue(e.target.value)} 
+                      className="h-7 text-xs w-[150px] p-1"
+                      autoFocus
+                    />
+                    <Button variant="default" size="sm" className="h-7 text-[10px] px-2" onClick={() => saveNameChange(u.id, u.isInvite)}>Simpan</Button>
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => setEditingNameId(null)}>Batal</Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>{u.name || (u.isInvite ? <span className="text-slate-400 font-normal italic text-xs">Belum login (Undangan)</span> : "-")}</span>
+                    {isOwner && !u.isInvite && (
+                      <button 
+                        onClick={() => { setEditingNameId(u.id); setEditNameValue(u.name || ""); }} 
+                        className="text-blue-500 hover:text-blue-700 text-[10px] uppercase tracking-widest font-bold underline"
+                      >
+                        Ubah
+                      </button>
+                    )}
+                  </div>
+                )}
               </TableCell>
               <TableCell className="font-mono text-xs">{u.email}</TableCell>
               <TableCell className="text-xs text-slate-500 font-medium">

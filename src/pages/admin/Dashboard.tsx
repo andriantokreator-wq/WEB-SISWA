@@ -52,7 +52,7 @@ const DUMMY_ARTICLES = [
 ];
 
 export default function Dashboard() {
-  const { user, role } = useAuth();
+  const { user, dbUser, role } = useAuth();
   const [stats, setStats] = useState({
     totalArticles: 0,
     publishedArticles: 0,
@@ -102,7 +102,7 @@ export default function Dashboard() {
         await addDoc(collection(db, "articles"), {
           ...article,
           authorId: user?.uid,
-          authorName: user?.displayName || "Admin",
+          authorName: dbUser?.name || user?.displayName || "Admin",
           createdAt: serverTimestamp(),
           publishedAt: serverTimestamp(),
         });

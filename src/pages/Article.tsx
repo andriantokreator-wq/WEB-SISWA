@@ -94,7 +94,7 @@ export default function Article() {
         </div>
 
         <div className="p-6 md:p-12">
-          <h1 className="text-3xl md:text-5xl font-serif italic font-bold text-slate-900 leading-tight mb-6 underline decoration-blue-500 decoration-4 underline-offset-8">
+          <h1 className="text-3xl md:text-5xl font-sans font-black text-slate-900 leading-tight mb-6 tracking-tight">
             {article.title}
           </h1>
           
